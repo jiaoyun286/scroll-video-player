@@ -5,8 +5,9 @@ import android.util.Log;
 import android.view.View;
 
 import com.nd.android.bk.video.tracker.IViewTracker;
-import com.nd.android.bk.video.utils.ItemChecker;
+import com.nd.android.bk.video.utils.DefaultFindNextTrackView;
 import com.nd.android.bk.video.utils.Reflecter;
+import com.nd.android.bk.video.videomanager.interfaces.IFindNextTrackView;
 
 /**
  * @author JiaoYun
@@ -18,7 +19,7 @@ public class RecyclerScrollDetector extends RecyclerView.OnScrollListener implem
     private int mScrollState = IScrollDetector.SCROLL_STATE_IDLE;
     private IViewTracker mViewTracker;
     private RecyclerView.OnScrollListener mOriginListener;
-
+    private IFindNextTrackView findNextTrackView = new DefaultFindNextTrackView();
     public RecyclerScrollDetector(RecyclerView recyclerView) {
         this.mRecyclerView = recyclerView;
         mOriginListener = Reflecter.on(mRecyclerView).get("mScrollListener");
@@ -35,11 +36,14 @@ public class RecyclerScrollDetector extends RecyclerView.OnScrollListener implem
     public void setTracker(IViewTracker tracker) {
         mViewTracker = tracker;
     }
+    public void setFindNextTrackView(IFindNextTrackView findNextTrackView){
+        this.findNextTrackView = findNextTrackView;
+    }
 
     @Override
     public void onScrollStateChanged(int scrollState) {
         if (scrollState == IScrollDetector.SCROLL_STATE_IDLE && mViewTracker.getContext() != null) {
-            View itemView = ItemChecker.getNextTrackerView(mRecyclerView, mViewTracker);
+            View itemView = findNextTrackView.getNextTrackerView(mRecyclerView, mViewTracker);
             Log.e(TAG, "onScrollStateChanged: itemView -> " + itemView + " edge -> " + mViewTracker.getEdgeString());
             if (itemView != null) {
                 mViewTracker.trackView(itemView).into(this);

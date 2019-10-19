@@ -6,8 +6,9 @@ import android.widget.AbsListView;
 import android.widget.ListView;
 
 import com.nd.android.bk.video.tracker.IViewTracker;
-import com.nd.android.bk.video.utils.ItemChecker;
+import com.nd.android.bk.video.utils.DefaultFindNextTrackView;
 import com.nd.android.bk.video.utils.Reflecter;
+import com.nd.android.bk.video.videomanager.interfaces.IFindNextTrackView;
 
 /**
  * @author JiaoYun
@@ -20,11 +21,16 @@ public class ListScrollDetector implements AbsListView.OnScrollListener,IScrollD
     private AbsListView.OnScrollListener mOriginListener;
     private int mScrollState = IScrollDetector.SCROLL_STATE_IDLE;
     private IViewTracker mViewTracker;
+    private IFindNextTrackView findNextTrackView = new DefaultFindNextTrackView();
 
     public ListScrollDetector(ListView listView) {
         this.mListView = listView;
         mOriginListener = Reflecter.on(mListView).get("mOnScrollListener");
         Reflecter.on(mListView).set("mOnScrollListener", this);
+    }
+
+    public void setFindNextTrackView(IFindNextTrackView findNextTrackView){
+        this.findNextTrackView = findNextTrackView;
     }
 
     @Override
@@ -50,8 +56,8 @@ public class ListScrollDetector implements AbsListView.OnScrollListener,IScrollD
     @Override
     public void onScrollStateChanged(int scrollState) {
         if (scrollState == IScrollDetector.SCROLL_STATE_IDLE && mViewTracker.getContext() != null) {
-            View itemView = ItemChecker.getNextTrackerView(mListView, mViewTracker);
-            Log.e(TAG, "onScrollStateChanged: itemView -> " + itemView + " edge -> " + mViewTracker.getEdgeString());
+            View itemView = findNextTrackView.getNextTrackerView(mListView, mViewTracker);
+            Log.e(TAG, "onScrollStateChanged: 滚动停止 itemView -> " + itemView + " edge -> " + mViewTracker.getEdgeString());
             if (itemView != null) {
                 mViewTracker.trackView(itemView).into(this);
                 mViewTracker.getFloatLayerView().setVisibility(View.VISIBLE);
