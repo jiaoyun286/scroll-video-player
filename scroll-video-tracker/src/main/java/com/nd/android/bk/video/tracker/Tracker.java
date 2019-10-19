@@ -1,11 +1,9 @@
 package com.nd.android.bk.video.tracker;
 
 import android.app.Activity;
-import android.support.v4.util.ArrayMap;
 
 import com.nd.android.bk.video.utils.Logger;
 
-import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
@@ -59,6 +57,10 @@ public class Tracker {
             return iViewTracker.destroy();
         }
         return null;
+    }
+
+    public static IViewTracker getViewTracker(Activity context){
+        return mViewTrackers.get(context);
     }
 
     public static void stopAnyPlayback() {

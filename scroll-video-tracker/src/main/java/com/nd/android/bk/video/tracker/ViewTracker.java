@@ -417,7 +417,8 @@ public abstract class ViewTracker implements IViewTracker, ViewTreeObserver.OnSc
         //获取视图在屏幕中的坐标位置
         toView.getLocationOnScreen(locTo);
         fromView.getLocationOnScreen(locFrom);
-
+        Rect locToViewR = new Rect();
+        toView.getLocalVisibleRect(locToViewR);
         //获取被追踪视图可见区域Rect对象
         toView.getLocalVisibleRect(toViewR);
         scrollParent.getLocalVisibleRect(scrollViewR);
@@ -431,76 +432,62 @@ public abstract class ViewTracker implements IViewTracker, ViewTreeObserver.OnSc
                 + " locFrom[0] -> " + locFrom[0]
                 + " locFrom[1] -> " + locFrom[1]);
 
-        if (toViewR.top != 0 || toViewR.bottom != toView.getHeight()
-                || toViewR.left != 0 || toViewR.right != toView.getWidth()) { //被追踪的视图正在被滚出屏幕，即部分可见
-            Logger.v(TAG, "moveCurrentView: move fromView");
-            float moveX = 0;
-            float moveY = 0;
+        if(toViewR.top > 0 && toViewR.bottom == toView.getHeight()){
+            mCurrentEdge = TOP_EDGE;
+        }else if(toViewR.top == 0 && toViewR.bottom < toView.getHeight()){
+            mCurrentEdge = BOTTOM_EDGE;
+        }else if(toViewR.left > 0 && toViewR.right == toView.getWidth()){
+            mCurrentEdge = LEFT_EDGE;
+        }else if(toViewR.left == 0 && toViewR.right < toView.getWidth()){
+            mCurrentEdge = RIGHT_EDGE;
+        }else{
+            ViewAnimator.putOn(parent).translation(locTo[0], locTo[1])
+                    .andPutOn(fromView).translation(0, 0);
+            return;
+        }
 
-            //向上滚动
-            if (toViewR.top > 0 && toViewR.top != 0) {
+        float moveX = 0;
+        float moveY = 0;
+        switch (mCurrentEdge){
+            case TOP_EDGE:
                 moveX = -toViewR.left;
                 moveY = -toViewR.top;
                 //将播放器视图容器视图固定的在可滚动视图的顶部
                 ViewAnimator.putOn(parent).translation(locTo[0],
                         locScroll[1] + scrollParent.getPaddingTop());
-                mCurrentEdge = TOP_EDGE;
-            }
-
-            //向下滚动
-            if (toViewR.bottom > 0 && toViewR.bottom != toView.getHeight()) {
+                break;
+            case BOTTOM_EDGE:
                 moveY = toView.getHeight() - toViewR.bottom;
                 moveX = toView.getWidth() - toViewR.right;
                 //将播放器视图容器视图固定的在可滚动视图的底部
                 ViewAnimator.putOn(parent).translation(locTo[0],
                         locScroll[1] + scrollViewR.bottom - scrollViewR.top - toView.getMeasuredHeight());
-                mCurrentEdge = BOTTOM_EDGE;
-            }
-
-            //向左滚动
-            if (toViewR.left > 0 && toViewR.left != 0) {
-                moveX = -toViewR.left;
+                break;
+            case LEFT_EDGE:
+                moveX =- toViewR.left;
                 //将播放器视图容器视图固定的在可滚动视图的左边界
                 ViewAnimator.putOn(parent).translationX(0);
-                mCurrentEdge = LEFT_EDGE;
-            }
-
-            //向右滚动
-            if (toViewR.right > 0 && toViewR.right != toView.getWidth()) {
+                break;
+            case RIGHT_EDGE:
                 moveX = toView.getWidth() - toViewR.right;
                 ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) getVerticalScrollView().getLayoutParams();
                 //将播放器视图容器视图固定的在可滚动视图的右边界
                 ViewAnimator.putOn(parent).translationX(getVerticalScrollView().getPaddingRight() + getVerticalScrollView().getPaddingLeft()
                         + layoutParams.leftMargin + layoutParams.rightMargin);
-                mCurrentEdge = RIGHT_EDGE;
-            }
-
-            if (toViewR.left < 0 && toViewR.right < 0) {
-                mCurrentEdge = LEFT_EDGE;
-            }
-
-            if (toViewR.right >= Utils.getDeviceWidth(mContext)) {
-                mCurrentEdge = RIGHT_EDGE;
-            }
-
-            //移动视频播放视图容器
-            ViewAnimator.putOn(fromView).translation(moveX, moveY);
-
-            //被追踪的item视图，在屏幕内还可见
-            if(!isViewOutOfListRect(toViewR,scrollViewR)) {
-                float v1 = (toViewR.bottom - toViewR.top) * 1.0f / toView.getHeight();
-                float v2 = (toViewR.right - toViewR.left) * 1.0f / toView.getWidth();
-                if (mVisibleChangeListener != null) {
-                    //竖直方向传高度变化，水平方向传宽度变化
-                    mVisibleChangeListener.onVisibleChange(mCurrentEdge == TOP_EDGE || mCurrentEdge == BOTTOM_EDGE ? v1 : v2, this);
-                }
-            }
-        } else {
-            Logger.v(TAG, "moveCurrentView: move fromView 的 parent");
-            //移动跟视图
-            ViewAnimator.putOn(parent).translation(locTo[0], locTo[1])
-                    .andPutOn(fromView).translation(0, 0);
+                break;
         }
+        //移动视频播放视图容器
+        ViewAnimator.putOn(fromView).translation(moveX, moveY);
+        //被追踪的item视图，在屏幕内还可见
+        if(!isViewOutOfListRect(toViewR,scrollViewR)) {
+            float v1 = (toViewR.bottom - toViewR.top) * 1.0f / toView.getHeight();
+            float v2 = (toViewR.right - toViewR.left) * 1.0f / toView.getWidth();
+            if (mVisibleChangeListener != null) {
+                //竖直方向传高度变化，水平方向传宽度变化
+                mVisibleChangeListener.onVisibleChange(mCurrentEdge == TOP_EDGE || mCurrentEdge == BOTTOM_EDGE ? v1 : v2, this);
+            }
+        }
+
     }
 
     /**
