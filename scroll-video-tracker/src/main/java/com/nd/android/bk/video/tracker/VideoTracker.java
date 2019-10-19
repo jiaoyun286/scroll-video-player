@@ -58,6 +58,13 @@ public class VideoTracker extends ViewTracker implements PlayerItemChangeListene
     }
 
     @Override
+    public IViewTracker destroy() {
+        IViewTracker tracker = super.destroy();
+        Tracker.resetMediaPlayer();
+        return tracker;
+    }
+
+    @Override
     public IViewTracker hide() {
         Logger.d(TAG,"hide");
         pauseVideo();
@@ -80,6 +87,8 @@ public class VideoTracker extends ViewTracker implements PlayerItemChangeListene
     @Override
     public void onPlayerItemChanged(IViewTracker viewTracker) {
         Logger.d(TAG,"onPlayerItemChanged");
+        addOrRemoveLoadingView(true);
+        mVideoPlayView.setVisibility(View.INVISIBLE);
     }
 
     @Override
