@@ -66,6 +66,19 @@ public class Tracker {
         return null;
     }
 
+    /**
+     * 检查follower view 是否已经 attach 到 DecorView
+     * @param context activity
+     * @return IViewTracker
+     */
+    public static boolean isAttach(Activity context){
+        IViewTracker iViewTracker = mViewTrackers.get(context);
+        if (iViewTracker != null) {
+            return iViewTracker.isAttach();
+        }
+        return false;
+    }
+
 
     /**
      * 检查tracher view是否同一个
@@ -109,6 +122,12 @@ public class Tracker {
 
     public static void stopAnyPlayback() {
         Logger.d(TAG,"stopAnyPlayback");
+        SingleVideoPlayerManager.getInstance().stopAnyPlayback();
+    }
+
+    public static void resetMediaPlayer(){
+        Logger.d(TAG,"resetMediaPlayer");
+        SingleVideoPlayerManager.getInstance().resetMediaPlayer();
     }
 
     public static void startVideo() {
