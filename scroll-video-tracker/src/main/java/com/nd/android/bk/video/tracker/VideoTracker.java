@@ -4,10 +4,14 @@ import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.MediaPlayer;
+import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.v4.util.SimpleArrayMap;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.nd.android.bk.video.R;
 import com.nd.android.bk.video.meta.MetaData;
 import com.nd.android.bk.video.utils.DrawableTask;
 import com.nd.android.bk.video.utils.Logger;
@@ -16,6 +20,7 @@ import com.nd.android.bk.video.utils.Utils;
 import com.nd.android.bk.video.videomanager.controller.BaseControllerView;
 import com.nd.android.bk.video.videomanager.controller.IControllerView;
 import com.nd.android.bk.video.videomanager.interfaces.PlayerItemChangeListener;
+import com.nd.android.bk.video.videomanager.interfaces.SimpleVideoPlayerListener;
 import com.nd.android.bk.video.videomanager.player.VideoPlayerView;
 
 public class VideoTracker extends ViewTracker implements PlayerItemChangeListener,
@@ -183,5 +188,112 @@ public class VideoTracker extends ViewTracker implements PlayerItemChangeListene
     }
 
     private void addFullScreenView() {
+        mVideoTopView.removeView(mNormalScreenControllerView);
+        if(mFullScreenControllerView.getParent() == null) {
+            mVideoTopView.addView(mFullScreenControllerView);
+        }
+        mFullScreenControllerView.setViewTracker(this);
     }
+    private void addOrRemoveLoadingView(boolean add) {
+        Logger.d("999","add = " + add);
+        if (mControllerView != null) {
+            if (add) {
+                if (mLoadingControllerView.getParent() == null) {
+                    mVideoTopView.addView(mLoadingControllerView);
+                }
+            } else {
+                mVideoTopView.removeView(mLoadingControllerView);
+            }
+        }
+    }
+
+    @Override
+    public IViewTracker trackView(@NonNull View trackView) {
+        IViewTracker tracker = super.trackView(trackView);
+        Object data = tracker.getTrackerView().getTag(R.id.tag_tracker_view);
+        if (data == null) {
+            throw new IllegalArgumentException("Tracker view 需要设置 id:tag_tracker_view !");
+        }
+        if(data instanceof MetaData){
+            mMetaData = (MetaData) data;
+        }else {
+            throw new IllegalArgumentException("Tracker view 中tag = tag_tracker_view 设置的数据的类型应该是  MetaData!");
+        }
+
+        addTrackerImageToVideoBottomView(trackView);
+
+
+        Tracker.addPlayerItemChangeListener(this);
+
+        Tracker.addVideoPlayerListener(new SimpleVideoPlayerListener() {
+            @Override
+            public void onInfo(IViewTracker viewTracker, int what) {
+                //这个回调可能不被调用
+                if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
+                    mVideoPlayView.setVisibility(View.VISIBLE);
+                    //清除背景
+                    mVideoBottomView.setBackgroundResource(0);
+                    //隐藏视频加载loading
+                    addOrRemoveLoadingView(false);
+                } else if (what == MediaPlayer.MEDIA_INFO_BUFFERING_START) {
+                    //播放过程中缓冲
+                    addOrRemoveLoadingView(true);
+                } else if (what == MediaPlayer.MEDIA_INFO_BUFFERING_END) {
+                    //缓冲完成会回调
+                    addOrRemoveLoadingView(false);
+                }
+            }
+
+            @Override
+            public void onBufferingUpdate(IViewTracker viewTracker, int percent) {
+                Logger.d("999","onBufferingUpdate percent = " + percent);
+                //预防onInfo有时未回调，导致视频未显示出来的问题
+                if( percent > 10){
+                    mVideoPlayView.setVisibility(View.VISIBLE);
+                    addOrRemoveLoadingView(false);
+                    mVideoBottomView.setBackgroundResource(0);
+                }
+            }
+
+            @Override
+            public void onVideoReleased(IViewTracker viewTracker) {
+                super.onVideoReleased(viewTracker);
+                Tracker.removeVideoPlayerListener(this);
+            }
+
+            @Override
+            public void onVideoPrepared(IViewTracker viewTracker) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    mVideoPlayView.setVisibility(View.VISIBLE);
+                    addOrRemoveLoadingView(false);
+                    mVideoBottomView.setBackgroundResource(0);
+                }
+                if(!isFullScreen()) {
+                    addNormalScreenView();
+                }else {
+                    addFullScreenView();
+                }
+            }
+        });
+        Tracker.playNewVideo(this, mVideoPlayView);
+
+        return tracker;
+    }
+
+    /**
+     * 将track view的背景图添加到floutview，以防止视频画面显示前的黑屏，使UI变化平滑，提高用户体验
+     *
+     * @param trackView
+     */
+    private void addTrackerImageToVideoBottomView(View trackView) {
+        boolean containsKey = mCachedDrawables.containsKey(mMetaData);
+        Logger.i(TAG, "addTrackerImageToVideoBottomView, containsKey : " + containsKey);
+        if (containsKey) {
+            mVideoBottomView.setBackgroundDrawable(mCachedDrawables.get(mMetaData));
+        } else {
+            mDrawableTask.execute(mMetaData, trackView);
+        }
+    }
+
+
 }

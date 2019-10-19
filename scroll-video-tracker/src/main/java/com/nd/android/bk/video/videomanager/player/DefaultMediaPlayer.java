@@ -181,6 +181,7 @@ public class DefaultMediaPlayer implements IMediaPlayer,
 
     @Override
     public boolean onInfo(MediaPlayer mp, int what, int extra) {
+        Logger.d("999","onInfo ");
         printInfo(what);
         if (mListener != null) {
             mListener.onInfo(mViewTracker, what);

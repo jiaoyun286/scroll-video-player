@@ -1,8 +1,15 @@
 package com.nd.android.bk.video.tracker;
 
 import android.app.Activity;
+import android.content.res.Configuration;
+import android.view.View;
 
 import com.nd.android.bk.video.utils.Logger;
+import com.nd.android.bk.video.videomanager.SingleVideoPlayerManager;
+import com.nd.android.bk.video.videomanager.controller.VideoRelativeLayout;
+import com.nd.android.bk.video.videomanager.interfaces.PlayerItemChangeListener;
+import com.nd.android.bk.video.videomanager.interfaces.VideoPlayerListener;
+import com.nd.android.bk.video.videomanager.player.VideoPlayerView;
 
 import java.util.WeakHashMap;
 
@@ -59,6 +66,43 @@ public class Tracker {
         return null;
     }
 
+
+    /**
+     * 检查tracher view是否同一个
+     * @param context
+     * @param newTracker
+     * @return
+     */
+    public static boolean isSameTrackerView(Activity context, View newTracker){
+        IViewTracker iViewTracker = mViewTrackers.get(context);
+        if(iViewTracker != null && iViewTracker.getTrackerView() != null){
+            return iViewTracker.getTrackerView().equals(newTracker) && iViewTracker.isAttach();
+        }
+        return false;
+    }
+
+    /**
+     * 变更track view，重新绑定{@link FloatLayerView}
+     * @param context
+     * @param trackView
+     */
+    public static void changeTrackView(Activity context,View trackView){
+        if(getViewTracker(context) != null){
+            getViewTracker(context).changeTrackView(trackView);
+        }
+    }
+
+    /**
+     * 屏幕方向配置发生改变时调用，来自动切换播放器的横竖屏
+     * @param context 配置发生改变Activity
+     * @param newConfig 配置相关参数
+     */
+    public static void onConfigurationChanged(Activity context, Configuration newConfig){
+        if(getViewTracker(context) != null){
+            getViewTracker(context).onConfigurationChanged(newConfig);
+        }
+    }
+
     public static IViewTracker getViewTracker(Activity context){
         return mViewTrackers.get(context);
     }
@@ -68,8 +112,38 @@ public class Tracker {
     }
 
     public static void startVideo() {
+        SingleVideoPlayerManager.getInstance().startVideo();
     }
 
     public static void pauseVideo() {
+        SingleVideoPlayerManager.getInstance().pauseVideo();
+    }
+
+    public static void addVideoPlayerListener(VideoPlayerListener videoPlayerListener) {
+        SingleVideoPlayerManager.getInstance().addVideoPlayerListener(videoPlayerListener);
+    }
+    public static void addPlayerItemChangeListener(PlayerItemChangeListener playerItemChangeListener) {
+        SingleVideoPlayerManager.getInstance().addPlayerItemChangeListener(playerItemChangeListener);
+    }
+
+    public static void removePlayerItemChangeListener(PlayerItemChangeListener playerItemChangeListener) {
+        SingleVideoPlayerManager.getInstance().removePlayerItemChangeListener(playerItemChangeListener);
+    }
+
+    public static void removeVideoPlayerListener(VideoPlayerListener videoPlayerListener) {
+        SingleVideoPlayerManager.getInstance().removeVideoPlayerListener(videoPlayerListener);
+    }
+
+    public static void removeAllVideoPlayerListeners() {
+        SingleVideoPlayerManager.getInstance().removeAllVideoPlayerListeners();
+    }
+
+    public static void removePlayerItemChangeListeners() {
+        SingleVideoPlayerManager.getInstance().removeAllPlayerItemChangeListeners();
+    }
+
+
+    public static void playNewVideo(IViewTracker viewTracker, VideoPlayerView videoPlayerView) {
+        SingleVideoPlayerManager.getInstance().playNewVideo(viewTracker, videoPlayerView);
     }
 }

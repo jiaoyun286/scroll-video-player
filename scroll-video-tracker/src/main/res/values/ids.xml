@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 设置播放数据，设置tag到id = view_tracker的控件上 -->
     <item name="tag_tracker_view" type="id"/>
+    <!-- 占位图播放按钮 -->
     <item name="view_play_video" type="id"/>
+    <!-- 显示占位图的控件 -->
     <item name="view_tracker" type="id"/>
 </resources>

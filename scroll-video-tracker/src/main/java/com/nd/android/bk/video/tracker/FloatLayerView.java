@@ -56,7 +56,6 @@ public class FloatLayerView extends FrameLayout {
         videoRoot.addView(mVideoBottomView, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         videoRoot.addView(mVideoPlayerView, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         videoRoot.addView(mVideoTopView, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        videoRoot.setBackgroundColor(getContext().getResources().getColor(R.color.primary_color));
 
         FrameLayout rootLayout = new FrameLayout(getContext());
         rootLayout.addView(videoRoot,new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));

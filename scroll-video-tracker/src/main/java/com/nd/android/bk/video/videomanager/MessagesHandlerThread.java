@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * 处理播放器消息的线程，通过一个单一线程的线程池来处理从消息队列中获取的消息
  * @author JiaoYun
  * @date 2019/10/14 22:11
  */
@@ -20,9 +21,7 @@ public class MessagesHandlerThread {
     private final Queue<Message> mPlayerMessagesQueue = new ConcurrentLinkedQueue<>();
     private final PlayerQueueLock mQueueLock = new PlayerQueueLock();
     private final Executor mQueueProcessingThread = Executors.newSingleThreadExecutor();
-//    private AtomicBoolean mCanProcess = new AtomicBoolean(true);
-
-    private AtomicBoolean mTerminated = new AtomicBoolean(false); // TODO: use it
+    private AtomicBoolean mTerminated = new AtomicBoolean(false);
     private Message mLastMessage;
 
     public MessagesHandlerThread() {
@@ -38,7 +37,7 @@ public class MessagesHandlerThread {
 
                     if (mPlayerMessagesQueue.isEmpty()) {
                         try {
-                            Logger.v(TAG, "queue is empty, wait for new messages");
+                            Logger.v(TAG, "queue 为空，等待新的message");
 
                             mQueueLock.wait(TAG);
                         } catch (InterruptedException e) {
@@ -68,7 +67,7 @@ public class MessagesHandlerThread {
     }
 
     /**
-     * Use it if you need to add a single message
+     * 添加单个消息
      */
     public void addMessage(Message message) {
 
@@ -83,7 +82,7 @@ public class MessagesHandlerThread {
     }
 
     /**
-     * Use it if you need to add a multiple messages
+     * 添加多个消息
      */
     public void addMessages(List<? extends Message> messages) {
         Logger.v(TAG, ">> addMessages, lock " + messages);
@@ -112,7 +111,7 @@ public class MessagesHandlerThread {
         if (mQueueLock.isLocked(outer)) {
             mPlayerMessagesQueue.clear();
         } else {
-            throw new RuntimeException("cannot perform action, you are not holding a lock");
+            throw new RuntimeException("不能执行 action, 未持有lock");
         }
         Logger.v(TAG, "<< clearAllPendingMessages, mPlayerMessagesQueue " + mPlayerMessagesQueue);
     }

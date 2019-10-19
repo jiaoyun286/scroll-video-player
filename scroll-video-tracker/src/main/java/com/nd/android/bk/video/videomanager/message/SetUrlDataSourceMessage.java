@@ -1,7 +1,6 @@
 package com.nd.android.bk.video.videomanager.message;
 
 import com.nd.android.bk.video.meta.MetaData;
-import com.nd.android.bk.video.videomanager.PlayerMessageState;
 import com.nd.android.bk.video.videomanager.interfaces.VideoPlayerManagerCallback;
 import com.nd.android.bk.video.videomanager.player.VideoPlayerView;
 
@@ -20,7 +19,6 @@ public class SetUrlDataSourceMessage extends SetDataSourceMessage{
 
     @Override
     protected void performAction(VideoPlayerView currentPlayer) {
-        //Get video url
         currentPlayer.setDataSource(mMetaData.getVideoUrl());
     }
 }

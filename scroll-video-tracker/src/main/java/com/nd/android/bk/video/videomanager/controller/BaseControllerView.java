@@ -46,10 +46,10 @@ public abstract class BaseControllerView extends RelativeLayout {
 
     protected abstract void attachWindow(boolean attach);
 
-    public void setViewTracker(IViewTracker viewTracker){
+    public void setViewTracker(IViewTracker viewTracker) {
         this.mViewTracker = viewTracker;
-//        if(mViewTracker.getFloatLayerView() != null) {
-        mVideoPlayerView = mViewTracker.getFloatLayerView().getVideoPlayerView();
-//        }
+        if (mViewTracker.getFloatLayerView() != null) {
+            mVideoPlayerView = mViewTracker.getFloatLayerView().getVideoPlayerView();
+        }
     }
 }

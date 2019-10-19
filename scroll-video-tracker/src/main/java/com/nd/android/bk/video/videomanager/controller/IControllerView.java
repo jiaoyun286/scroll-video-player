@@ -13,8 +13,6 @@ public interface IControllerView {
     View normalScreenController(IViewTracker tracker);
 
 
-    View detailScreenController(IViewTracker tracker);
-
 
     View fullScreenController(IViewTracker tracker);
 
@@ -22,7 +20,6 @@ public interface IControllerView {
     View loadingController(IViewTracker tracker);
 
 
-    View anotherController(IViewTracker tracker);
 
 
     boolean muteVideo();
