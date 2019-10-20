@@ -97,7 +97,8 @@ public class ListSupportFragment extends Fragment implements View.OnClickListene
 
     @Override
     public void onDestroy() {
-        Tracker.addVideoPlayerListener(this);
+        //移除监听避免内存泄露
+        Tracker.removeVideoPlayerListener(this);
         super.onDestroy();
     }
 
