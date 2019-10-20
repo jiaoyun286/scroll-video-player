@@ -98,7 +98,7 @@ public abstract class ViewTracker implements IViewTracker, ViewTreeObserver.OnSc
 
     public ViewTracker(Activity context) {
         if (context == null) {
-            throw new IllegalArgumentException("Context must not be null in ViewTracker!");
+            throw new IllegalArgumentException("Context 不能为null!");
         }
         this.mContext = context;
     }
@@ -284,7 +284,7 @@ public abstract class ViewTracker implements IViewTracker, ViewTreeObserver.OnSc
         this.mTrackView = trackView;
         int id = mTrackView.getId();
         if (id != R.id.view_tracker) {
-            throw new IllegalStateException("Tracker view id must be R.id.view_tracker !");
+            throw new IllegalStateException("Tracker view id 必须是 R.id.view_tracker !");
         }
         rebindViewToTracker(mFollowerView, mTrackView);
         trackView.getViewTreeObserver().addOnScrollChangedListener(this);
@@ -297,7 +297,7 @@ public abstract class ViewTracker implements IViewTracker, ViewTreeObserver.OnSc
         this.mTrackView = trackView;
         int id = mTrackView.getId();
         if (id != R.id.view_tracker) {
-            throw new IllegalStateException("Tracker view id must be R.id.view_tracker !");
+            throw new IllegalStateException("Tracker view id 必须是 R.id.view_tracker !");
         }
         rebindViewToTracker(mFollowerView, mTrackView);
         trackView.getViewTreeObserver().addOnScrollChangedListener(this);
