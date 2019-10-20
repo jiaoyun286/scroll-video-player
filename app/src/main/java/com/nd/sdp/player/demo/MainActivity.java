@@ -1,17 +1,12 @@
 package com.nd.sdp.player.demo;
 
-import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import com.nd.android.bk.video.tracker.Tracker;
 import com.nd.sdp.bk.video.R;
-import com.nd.sdp.player.demo.view.DetailFragment;
 import com.nd.sdp.player.demo.view.PagerSupportActivity;
+import com.nd.sdp.player.demo.view.TrackerSupportActivity;
 import com.nd.sdp.player.demo.view.TrackerSupportFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,65 +27,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onTrackerSupport(View view){
-        getSupportFragmentManager()
-                .beginTransaction()
-                .add(R.id.layout_container, new TrackerSupportFragment(), "TrackerSupportFragment")
-                .addToBackStack("TrackerSupportFragment")
-                .commit();
+        TrackerSupportActivity.start(this);
     }
 
 
-
-    public void addDetailFragment() {
-        getSupportFragmentManager()
-            .beginTransaction()
-            .add(R.id.layout_container, new DetailFragment(), "DetailFragment")
-            .addToBackStack("DetailFragment")
-            .commitAllowingStateLoss();
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        Tracker.onConfigurationChanged(this, newConfig);
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-            && getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
-            // Get the current fragment using the method from the second step above...
-            Fragment currentFragment = getCurrentFragment();
-
-            // Determine whether or not this fragment implements Backable
-            // Do a null check just to be safe
-            if (currentFragment != null && currentFragment instanceof Backable) {
-
-                if (((Backable) currentFragment).onBackPressed()) {
-                    // If the onBackPressed override in your fragment
-                    // did absorb the back event (returned true), return
-                    return;
-                } else {
-                    // Otherwise, call the super method for the default behavior
-                    super.onBackPressed();
-                }
-            }
-
-            // Any other logic needed...
-            // call super method to be sure the back button does its thing...
-            super.onBackPressed();
-        } else {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }
-    }
-
-    public Fragment getCurrentFragment() {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        if (fragmentManager.getBackStackEntryCount() > 0) {
-            String lastFragmentName = fragmentManager.getBackStackEntryAt(
-                fragmentManager.getBackStackEntryCount() - 1).getName();
-            return fragmentManager.findFragmentByTag(lastFragmentName);
-        }
-        return null;
-    }
 }

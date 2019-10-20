@@ -61,7 +61,7 @@ public class TrackerSupportFragment extends Fragment implements View.OnClickList
     @Override
     public void onClick(View view) {
         if(!Tracker.isSameTrackerView(getActivity(),view)) {
-            Tracker.attach(getActivity())
+            Tracker.attach(this)
                     .trackView(view)
                     .into(new RecyclerScrollDetector(mRecyclerView))
                     .controller(new DefaultControllerView())
@@ -69,7 +69,7 @@ public class TrackerSupportFragment extends Fragment implements View.OnClickList
         }
 //        Tracker.attach(getActivity()).trackView(view).into(new RecyclerScrollDetector(mRecyclerView));
         //无缝平移到详情页面进行播放
-        ((MainActivity) getActivity()).addDetailFragment();
+        ((TrackerSupportActivity) getActivity()).addDetailFragment();
 
     }
 
@@ -160,12 +160,6 @@ public class TrackerSupportFragment extends Fragment implements View.OnClickList
         }
 
         return true;
-    }
-
-    @Override
-    public void onDestroy() {
-        Tracker.removeVideoPlayerListener(this);
-        super.onDestroy();
     }
 
     static class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.VideoHolder>{

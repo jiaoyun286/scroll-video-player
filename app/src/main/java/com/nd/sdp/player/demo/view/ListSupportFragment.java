@@ -73,7 +73,7 @@ public class ListSupportFragment extends Fragment implements View.OnClickListene
     @Override
     public void onClick(View v) {
         if(!Tracker.isSameTrackerView(getActivity(),v)) {
-            Tracker.attach(getActivity())
+            Tracker.attach(this)
                 .trackView(v)
                 .into(new ListScrollDetector(mListView))
                 .controller(new DefaultControllerView())
@@ -95,12 +95,6 @@ public class ListSupportFragment extends Fragment implements View.OnClickListene
         }
     }
 
-    @Override
-    public void onDestroy() {
-        //移除监听避免内存泄露
-        Tracker.removeVideoPlayerListener(this);
-        super.onDestroy();
-    }
 
     @Override
     public void onPlayerItemChanged(IViewTracker viewTracker) {

@@ -4,6 +4,7 @@ buildscript {
     repositories {
         jcenter()
         google()
+
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.1.4'
@@ -17,6 +18,9 @@ allprojects {
     repositories {
         jcenter()
         google()
+        maven {
+            url ='http://nexus.sdp.nd/nexus/content/groups/android-public/'
+        }
     }
 }
 

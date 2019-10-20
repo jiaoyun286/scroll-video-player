@@ -1,15 +1,18 @@
 package com.nd.android.bk.video.tracker;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.res.Configuration;
 import android.view.View;
 
+import com.nd.android.bk.video.lifecyce.VideoPageLifecycleTracker;
 import com.nd.android.bk.video.utils.Logger;
 import com.nd.android.bk.video.videomanager.SingleVideoPlayerManager;
-import com.nd.android.bk.video.videomanager.controller.VideoRelativeLayout;
 import com.nd.android.bk.video.videomanager.interfaces.PlayerItemChangeListener;
 import com.nd.android.bk.video.videomanager.interfaces.VideoPlayerListener;
 import com.nd.android.bk.video.videomanager.player.VideoPlayerView;
+import com.nd.sdp.android.lifecycle.manager.LifecycleBinder;
+import com.nd.sdp.android.lifecycle.manager.LifecycleManager;
 
 import java.util.WeakHashMap;
 
@@ -29,6 +32,11 @@ public class Tracker {
      * @return IViewTracker
      */
     public static IViewTracker attach(Activity context) {
+        LifecycleManager lifecycleManager = LifecycleBinder.with(context);
+        if(lifecycleManager.getTracker() == null){
+            lifecycleManager.setTracker(new VideoPageLifecycleTracker());
+        }
+
         IViewTracker iViewTracker = mViewTrackers.get(context);
         if (iViewTracker != null) {
             return iViewTracker.attach();
@@ -37,6 +45,18 @@ public class Tracker {
         mViewTrackers.put(context, tracker);
         return tracker;
     }
+
+
+    public static IViewTracker attach(Fragment fragment){
+        LifecycleBinder.with(fragment).setTracker(new VideoPageLifecycleTracker());
+        return attach(fragment.getActivity());
+    }
+
+    public static IViewTracker attach(android.support.v4.app.Fragment fragment){
+        LifecycleBinder.with(fragment).setTracker(new VideoPageLifecycleTracker());
+        return attach(fragment.getActivity());
+    }
+
 
     /**
      * 从DecorView中移除follower视图,但是不移除{@link IViewTracker}
@@ -61,11 +81,19 @@ public class Tracker {
     public static IViewTracker destroy(Activity context){
         IViewTracker iViewTracker = mViewTrackers.remove(context);
         if (iViewTracker != null) {
-            IViewTracker destroy = iViewTracker.destroy();
-            SingleVideoPlayerManager.getInstance().release();
-            return destroy;
+            return  iViewTracker.destroy();
         }
         return null;
+    }
+
+    public static void destroy(){
+        for(Activity key : mViewTrackers.keySet()){
+            IViewTracker iViewTracker = mViewTrackers.get(key);
+            if (iViewTracker != null) {
+                iViewTracker.destroy();
+            }
+        }
+        mViewTrackers.clear();
     }
 
     /**

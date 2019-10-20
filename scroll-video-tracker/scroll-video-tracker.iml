@@ -108,12 +108,14 @@
     <orderEntry type="library" name="Gradle: android.arch.core:common:1.0.0@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:recyclerview-v7:27.0.1@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:appcompat-v7:27.0.1@aar" level="project" />
+    <orderEntry type="library" name="Gradle: com.nd.sdp.android:lifecycle-binder:0.2@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-fragment:27.0.1@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:animated-vector-drawable:27.0.1@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-core-ui:27.0.1@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-core-utils:27.0.1@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-vector-drawable:27.0.1@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-compat:27.0.1@aar" level="project" />
+    <orderEntry type="library" name="Gradle: com.android.support:support-v4:23.1.1@aar" level="project" />
     <orderEntry type="library" name="Gradle: android.arch.lifecycle:runtime:1.0.0@aar" level="project" />
   </component>
 </module>

@@ -50,9 +50,4 @@ public class PagerSupportActivity extends AppCompatActivity {
         Tracker.onConfigurationChanged(this, newConfig);
     }
 
-    @Override
-    protected void onDestroy() {
-        Tracker.destroy(this);
-        super.onDestroy();
-    }
 }
