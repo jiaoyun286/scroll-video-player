@@ -128,7 +128,6 @@ public class VideoPlayerView extends ScalableTextureView implements TextureView.
                 mMediaPlayer.prepare();
             }
         } catch (Exception e) {
-            //TODO handle different error here
             onError(mViewTracker, 0, 0);
             e.printStackTrace();
         }
@@ -188,7 +187,7 @@ public class VideoPlayerView extends ScalableTextureView implements TextureView.
             }
         } catch (Exception e) {
             e.printStackTrace();
-            //when video is preparing,will throw IllegalStateException
+            //当播放器是 preparing状态时,将 throw IllegalStateException
         }
     }
 
@@ -201,7 +200,7 @@ public class VideoPlayerView extends ScalableTextureView implements TextureView.
             }
         } catch (Exception e) {
             e.printStackTrace();
-            //when video is preparing,will throw IllegalStateException
+            //当播放器是 preparing状态时,将 throw IllegalStateException
         }
         return 0;
     }
@@ -215,7 +214,7 @@ public class VideoPlayerView extends ScalableTextureView implements TextureView.
             }
         } catch (Exception e) {
             e.printStackTrace();
-            //when video is preparing,will throw IllegalStateException
+            //当播放器是 preparing状态时,将 throw IllegalStateException
         }
         return 0;
     }
@@ -227,7 +226,7 @@ public class VideoPlayerView extends ScalableTextureView implements TextureView.
             }
         } catch (Exception e) {
             e.printStackTrace();
-            //when video is preparing,will throw IllegalStateException
+            //当播放器是 preparing状态时,将 throw IllegalStateException
         }
     }
 
