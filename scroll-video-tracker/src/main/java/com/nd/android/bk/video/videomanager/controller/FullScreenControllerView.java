@@ -36,7 +36,6 @@ public class FullScreenControllerView extends BaseControllerView {
     public void setViewTracker(IViewTracker viewTracker) {
         super.setViewTracker(viewTracker);
         mControllerView = new VideoControllerView.Builder((Activity) viewTracker.getContext(), mPlayerControlListener)
-                .withVideoTitle("TEST VIDEO")
                 .withVideoView(viewTracker.getFollowerView())
                 .canControlBrightness(true)
                 .canControlVolume(true)
