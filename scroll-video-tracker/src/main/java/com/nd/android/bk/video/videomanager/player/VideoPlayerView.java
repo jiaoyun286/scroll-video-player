@@ -273,8 +273,6 @@ public class VideoPlayerView extends ScalableTextureView implements TextureView.
         if (width != 0 && height != 0) {
             refreshSurfaceTexture(width, height);
         }
-
-        //dispatch VideoPlayerListener
         List<VideoPlayerListener> listCopy;
         synchronized (mVideoPlayerListeners) {
             listCopy = new ArrayList<>(mVideoPlayerListeners);

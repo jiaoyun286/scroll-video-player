@@ -310,7 +310,7 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<IViewTracker
         mCurrentPlayerState = playerMessageState;
 
         //clear listener when player instance cleared
-        if (playerMessageState == PlayerMessageState.PLAYER_INSTANCE_CLEARED) {
+        if (playerMessageState == PlayerMessageState.PLAYER_INSTANCE_CLEARED && mCurrentPlayer != null) {
             mCurrentPlayer.removeAllPlayerListener();
         }
 
@@ -400,4 +400,16 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<IViewTracker
     public void removeAllVideoPlayerListeners() {
         mPendingAddListeners.clear();
     }
+
+    public void release(){
+        mPendingAddListeners.clear();
+        mPlayerItemChangeListeners.clear();
+        if(mCurrentPlayer != null){
+            mCurrentPlayer.removeAllPlayerListener();
+            mCurrentPlayer = null;
+        }
+        mCurrentPlayerState = null;
+    }
+
+
 }

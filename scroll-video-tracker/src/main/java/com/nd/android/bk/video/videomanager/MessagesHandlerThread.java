@@ -22,7 +22,7 @@ public class MessagesHandlerThread {
     private final PlayerQueueLock mQueueLock = new PlayerQueueLock();
     private final Executor mQueueProcessingThread = Executors.newSingleThreadExecutor();
     private AtomicBoolean mTerminated = new AtomicBoolean(false);
-    private Message mLastMessage;
+
 
     public MessagesHandlerThread() {
         mQueueProcessingThread.execute(new Runnable() {
@@ -46,18 +46,18 @@ public class MessagesHandlerThread {
                         }
                     }
 
-                    mLastMessage = mPlayerMessagesQueue.poll();
+                    Message lastMessage = mPlayerMessagesQueue.poll();
 
-                    if (mLastMessage == null) break;
-                    mLastMessage.polledFromQueue();
-                    Logger.v(TAG, "poll mLastMessage " + mLastMessage);
+                    if (lastMessage == null) break;
+                    lastMessage.polledFromQueue();
+                    Logger.v(TAG, "poll lastMessage " + lastMessage);
                     mQueueLock.unlock(TAG);
 
-                    Logger.v(TAG, "run, mLastMessage " + mLastMessage);
-                    mLastMessage.runMessage();
+                    Logger.v(TAG, "run, lastMessage " + lastMessage);
+                    lastMessage.runMessage();
 
                     mQueueLock.lock(TAG);
-                    mLastMessage.messageFinished();
+                    lastMessage.messageFinished();
                     mQueueLock.unlock(TAG);
 
                 } while (!mTerminated.get());

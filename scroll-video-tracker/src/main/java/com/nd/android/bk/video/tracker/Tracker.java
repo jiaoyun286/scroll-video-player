@@ -61,7 +61,9 @@ public class Tracker {
     public static IViewTracker destroy(Activity context){
         IViewTracker iViewTracker = mViewTrackers.remove(context);
         if (iViewTracker != null) {
-            return iViewTracker.destroy();
+            IViewTracker destroy = iViewTracker.destroy();
+            SingleVideoPlayerManager.getInstance().release();
+            return destroy;
         }
         return null;
     }
