@@ -195,6 +195,9 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<IViewTracker
     private void stopResetReleaseClearCurrentPlayer() {
         Logger.v(TAG, "stopResetReleaseClearCurrentPlayer, mCurrentPlayerState " + mCurrentPlayerState + ", mCurrentPlayer " + mCurrentPlayer);
 
+        if(mCurrentPlayerState == null){
+            return;
+        }
         switch (mCurrentPlayerState) {
             case SETTING_NEW_PLAYER:
             case IDLE:

@@ -3,7 +3,7 @@ package com.nd.sdp.player.demo.view;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +34,7 @@ public class PagerSupportFragment extends Fragment{
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mViewPager = (ViewPager) view.findViewById(R.id.view_pager);
-        mViewPager.setAdapter(new FragmentPagerAdapter(getFragmentManager()) {
+        mViewPager.setAdapter(new FragmentStatePagerAdapter(getFragmentManager()) {
             @Override
             public Fragment getItem(int position) {
                 return new ListSupportFragment();
@@ -42,7 +42,7 @@ public class PagerSupportFragment extends Fragment{
 
             @Override
             public int getCount() {
-                return 3;
+                return 8;
             }
         });
 
