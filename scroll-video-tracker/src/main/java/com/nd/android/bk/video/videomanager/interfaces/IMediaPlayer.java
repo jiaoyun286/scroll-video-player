@@ -57,10 +57,14 @@ public interface IMediaPlayer {
     int getCurrentPosition() throws IOException;
 
     boolean isPlaying();
+    boolean isPaused();
 
     void clearAll();
 
     void setViewTracker(IViewTracker viewTracker);
 
     State getCurrentState();
+
+    void setSpeed(float speed);
+
 }

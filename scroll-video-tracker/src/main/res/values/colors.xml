@@ -2,4 +2,5 @@
 <resources>
     <color name="primary_color">#0087fc</color>
     <color name="mask">#64000000</color>
+    <color name="black">#000000</color>
 </resources>

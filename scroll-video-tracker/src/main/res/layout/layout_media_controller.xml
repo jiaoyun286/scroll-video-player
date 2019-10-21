@@ -30,8 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="15dp"
-            android:layout_marginRight="15dp"
+            android:layout_marginLeft="16dp"
             android:text="00:00"
             android:textColor="@android:color/white"
             android:textSize="15sp"/>
@@ -56,18 +55,30 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="15dp"
+            android:layout_marginRight="8dp"
             android:text="00:00"
             android:textColor="@android:color/white"
             android:textSize="15sp"/>
+
+        <TextView
+            android:id="@+id/tv_rate"
+            android:layout_width="48dp"
+            android:layout_height="24dp"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="8dp"
+            android:gravity="center"
+            android:background="@drawable/common_video_button_small_white_selector"
+            android:textColor="#ffffff"
+            android:visibility="gone"
+            tools:text="1x"/>
 
         <ImageButton
             android:id="@+id/bottom_fullscreen"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="center_vertical"
-            android:paddingRight="25dp"
-            android:paddingLeft="25dp"
+            android:padding="8dp"
+            android:layout_marginRight="8dp"
             android:background="@null"
             android:src="@drawable/ic_media_fullscreen_stretch"/>
 

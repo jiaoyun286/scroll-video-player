@@ -2,6 +2,7 @@ package com.nd.android.bk.video.videomanager.controller;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
@@ -23,6 +24,10 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.nd.android.bk.video.R;
+import com.nd.android.bk.video.tracker.IViewTracker;
+import com.nd.android.bk.video.tracker.Tracker;
+import com.nd.android.bk.video.utils.Utils;
+import com.nd.android.bk.video.videomanager.interfaces.PlayerItemChangeListener;
 
 import java.lang.ref.WeakReference;
 import java.util.Formatter;
@@ -32,27 +37,28 @@ import java.util.Locale;
  * @author JiaoYun
  * @date 2019/10/14 22:22
  */
-public class VideoControllerView extends FrameLayout implements VideoGestureListener {
+public class VideoControllerView extends FrameLayout implements VideoGestureListener, PlayerItemChangeListener {
     private static final String TAG = "VideoControllerView";
 
-    private static final int HANDLER_ANIMATE_OUT = 1;// out animate
-    private static final int HANDLER_UPDATE_PROGRESS = 2;//cycle update progress
+    private static final int HANDLER_ANIMATE_OUT = 1;
+    private static final int HANDLER_UPDATE_PROGRESS = 2;
     private static final long PROGRESS_SEEK = 500;
     private static final long ANIMATE_TIME = 300;
     private static final long AUTO_HIDE_TIME = 3000;
 
-    private View mRootView; // root view of this
-    private SeekBar mSeekBar; //seek bar for video
+    private View mRootView;
+    private SeekBar mSeekBar;
     private TextView mEndTime, mCurrentTime;
-    private boolean mIsShowing;//controller view showing
-    private boolean mIsDragging; //is dragging seekBar
+    private boolean mIsShowing;
+    private boolean mIsDragging;
     private StringBuilder mFormatBuilder;
     private Formatter mFormatter;
-    private GestureDetector mGestureDetector;//gesture detector
+    private GestureDetector mGestureDetector;
 
     private Activity mContext;
     private boolean mCanSeekVideo;
     private boolean mCanControlVolume;
+    private boolean mCanControlSpeed;
     private boolean mCanControlBrightness;
     private String mVideoTitle;
     private MediaPlayerControlListener mMediaPlayerControlListener;
@@ -70,12 +76,12 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
     @DrawableRes
     private int mStretchIcon;
 
-    //top layout
+
     private View mTopLayout;
     private ImageButton mBackButton;
     private TextView mTitleText;
 
-    //center layout
+
     private View mCenterLayout;
     private ImageView mCenterImage;
     private ProgressBar mCenterProgress;
@@ -83,12 +89,15 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
     private int mCurVolume = -1;
     private AudioManager mAudioManager;
     private int mMaxVolume;
+    private int duration;
 
-    //bottom layout
     private View mBottomLayout;
     private ImageButton mPauseButton;
     private ImageButton mFullscreenButton;
-
+    private TextView mTvPalyRate;
+    private float mCurrentSpeed = 1.0f;
+    private float mlastSpeed = 1.0f;
+    private String mCurrentSpeedDes = "1x";
     private Handler mHandler = new ControllerViewHandler(this);
 
     public VideoControllerView(Builder builder) {
@@ -106,7 +115,7 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         this.mStretchIcon = builder.stretchIcon;
         this.mShrinkIcon = builder.shrinkIcon;
         this.mVideoView = builder.videoView;
-
+        this.mCanControlSpeed = builder.canControlSpeed;
         setAnchorView(builder.anchorView);
         this.mVideoView.setOnTouchListener(new OnTouchListener() {
             @Override
@@ -115,6 +124,19 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
                 return mMediaPlayerControlListener.isFullScreen();
             }
         });
+
+        Tracker.addPlayerItemChangeListener(this);
+    }
+
+    @Override
+    public void onPlayerItemChanged(IViewTracker viewTracker) {
+        mlastSpeed = mCurrentSpeed = 1.0f;
+        if(mMediaPlayerControlListener.isPlaying()){
+            mMediaPlayerControlListener.setSpeed(mCurrentSpeed);
+        }
+        mTvPalyRate.setText("1x");
+        mPauseButton.setImageResource(mPauseIcon);
+        mHandler.postDelayed(mHideRunnable,AUTO_HIDE_TIME);
     }
 
     public static class Builder {
@@ -123,6 +145,7 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         private boolean canSeekVideo = true;
         private boolean canControlVolume = true;
         private boolean canControlBrightness = true;
+        private boolean canControlSpeed = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M;
         private String videoTitle = "";
         private MediaPlayerControlListener mediaPlayerControlListener;
         private ViewGroup anchorView;
@@ -138,7 +161,6 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         @DrawableRes
         private int stretchIcon = R.drawable.ic_media_fullscreen_stretch;
 
-        //Required
         public Builder(@Nullable Activity context, @Nullable MediaPlayerControlListener mediaControlListener){
             this.context = context;
             this.mediaPlayerControlListener = mediaControlListener;
@@ -153,7 +175,7 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
             return this;
         }
 
-        //Options
+
         public Builder withVideoTitle(String videoTitle) {
             this.videoTitle = videoTitle;
             return this;
@@ -204,16 +226,21 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
             return this;
         }
 
+        public Builder canControlSpeed(boolean canControlSpeed) {
+            this.canControlSpeed = canControlSpeed;
+            return this;
+        }
+
         public VideoControllerView build(@Nullable ViewGroup anchorView) {
             this.anchorView = anchorView;
-            return new VideoControllerView(this);
+            VideoControllerView videoControllerView = new VideoControllerView(this);
+            videoControllerView.show();
+            return videoControllerView;
         }
 
     }
 
-    /**
-     * Handler prevent leak memory.
-     */
+
     private static class ControllerViewHandler extends Handler {
         private final WeakReference<VideoControllerView> mView;
 
@@ -255,15 +282,14 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         return mRootView;
     }
 
-    /**
-     * find all views inside {@link VideoControllerView}
-     * and init params
-     */
+
     private void initControllerView() {
-        //top layout
+
         mTopLayout = mRootView.findViewById(R.id.layout_top);
         mBackButton = (ImageButton) mRootView.findViewById(R.id.top_back);
         mBackButton.setImageResource(mExitIcon);
+        mTvPalyRate = mRootView.findViewById(R.id.tv_rate);
+        mTvPalyRate.setText(mCurrentSpeedDes);
         if (mBackButton != null) {
             mBackButton.requestFocus();
             mBackButton.setOnClickListener(mBackListener);
@@ -271,13 +297,13 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
 
         mTitleText = (TextView) mRootView.findViewById(R.id.top_title);
 
-        //center layout
+
         mCenterLayout = mRootView.findViewById(R.id.layout_center);
         mCenterLayout.setVisibility(GONE);
         mCenterImage = (ImageView) mRootView.findViewById(R.id.image_center_bg);
         mCenterProgress = (ProgressBar) mRootView.findViewById(R.id.progress_center);
 
-        //bottom layout
+
         mBottomLayout = mRootView.findViewById(R.id.layout_bottom);
         mPauseButton = (ImageButton) mRootView.findViewById(R.id.bottom_pause);
         if (mPauseButton != null) {
@@ -290,39 +316,77 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
             mFullscreenButton.requestFocus();
             mFullscreenButton.setOnClickListener(mFullscreenListener);
         }
-
+        if(mMediaPlayerControlListener != null){
+            duration = mMediaPlayerControlListener.getDuration();
+        }
         mSeekBar = (SeekBar) mRootView.findViewById(R.id.bottom_seekbar);
         if (mSeekBar != null) {
             mSeekBar.setOnSeekBarChangeListener(mSeekListener);
-            mSeekBar.setMax(1000);
+            if(duration > 0){
+                mSeekBar.setMax(duration / 1000);
+            }else {
+                mSeekBar.setMax(1000);
+            }
         }
 
         mEndTime = (TextView) mRootView.findViewById(R.id.bottom_time);
         mCurrentTime = (TextView) mRootView.findViewById(R.id.bottom_time_current);
 
-        //init formatter
+
         mFormatBuilder = new StringBuilder();
+        if(mCanControlSpeed){
+            mTvPalyRate.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    changePalySpeed();
+
+                }
+            });
+        }
         mFormatter = new Formatter(mFormatBuilder, Locale.getDefault());
     }
 
 
+    private void changePalySpeed() {
+
+        if (mCurrentSpeed == 1.0f) {
+            mCurrentSpeedDes = "1.2x";
+            mCurrentSpeed = 1.2f;
+        } else if (mCurrentSpeed == 1.2f) {
+            mCurrentSpeed = 1.5f;
+            mCurrentSpeedDes = "1.5x";
+        } else if (mCurrentSpeed == 1.5f) {
+            mCurrentSpeed = 2.0f;
+            mCurrentSpeedDes = "2x";
+        } else if(mCurrentSpeed == 2.0f){
+            mCurrentSpeed = 1.0f;
+            mCurrentSpeedDes = "1x";
+        }
+        mTvPalyRate.setText(mCurrentSpeedDes);
+        if(mMediaPlayerControlListener.isPlaying()){
+            mlastSpeed = mCurrentSpeed;
+            mMediaPlayerControlListener.setSpeed(mCurrentSpeed);
+        }
+    }
     public void showWithTitle(String videoTitle){
         this.mVideoTitle = videoTitle;
         show();
     }
+    @Override
+    protected void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mBackButton.setVisibility(mMediaPlayerControlListener.isFullScreen() ? View.VISIBLE : View.GONE);
+        mFullscreenButton.setVisibility(mMediaPlayerControlListener.isFullScreen() ? View.GONE : View.VISIBLE);
+    }
 
-    /**
-     * show controller view
-     */
     private void show() {
 
         if (!mIsShowing && mAnchorView != null) {
 
-            //3s to auto hide controller view
+
             mHandler.removeCallbacks(mHideRunnable);
             mHandler.postDelayed(mHideRunnable,AUTO_HIDE_TIME);
-
-            //add controller view to bottom of the AnchorView
             LayoutParams tlp = new LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -330,7 +394,6 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
             mAnchorView.addView(VideoControllerView.this, tlp);
 
             mIsShowing = true;
-            mHandler.sendEmptyMessage(HANDLER_UPDATE_PROGRESS);
         }
 
         setSeekProgress();
@@ -339,49 +402,45 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         }
         togglePausePlay();
         toggleFullScreen();
-        //update progress
+
         mHandler.sendEmptyMessage(HANDLER_UPDATE_PROGRESS);
 
     }
 
-    /**
-     * adjust ui display in landscape and portrait
-     */
+
+
+
     private void adjustUiDisplay() {
         ViewGroup.LayoutParams params = mBottomLayout.getLayoutParams();
         RelativeLayout.LayoutParams params1 = (RelativeLayout.LayoutParams) mTitleText.getLayoutParams();
+        if(mCanControlSpeed){
+            mTvPalyRate.setVisibility(View.VISIBLE);
+        }
         if(mMediaPlayerControlListener.isFullScreen()){
-            mPauseIcon = R.drawable.ic_media_pause;
-            mPlayIcon = R.drawable.ic_media_play;
-            mPauseButton.setImageResource(mPauseIcon);
             params.height = (int) getResources().getDimension(R.dimen.video_bottom_landscape);
             params1.topMargin = (int) getResources().getDimension(R.dimen.video_top_landscape);
+            if(Utils.isAllScreenDevice(mContext)){
+                params.width = Utils.getDeviceWidth(mContext) - Utils.getStatusBarHeight(mContext);
+            }
             mBackButton.setVisibility(VISIBLE);
         }else {
-            mPauseIcon = R.drawable.ic_media_pause_small;
-            mPlayIcon = R.drawable.ic_media_play_small;
+
             mPauseButton.setImageResource(mPauseIcon);
             params.height = (int) getResources().getDimension(R.dimen.video_bottom_portrait);
             params1.topMargin = (int) getResources().getDimension(R.dimen.video_top_portrait);
             mBackButton.setVisibility(GONE);
         }
         mBottomLayout.setLayoutParams(params);
-        //ADD ?
         mTitleText.setLayoutParams(params1);
     }
 
-    /**
-     * toggle {@link VideoControllerView} show or not
-     * this can be called when {@link View#onTouchEvent(MotionEvent)} happened
-     */
+
     public void toggleControllerView() {
 
         if (!isShowing()) {
             show();
         } else {
-            //animate out controller view
             Message msg = mHandler.obtainMessage(HANDLER_ANIMATE_OUT);
-            //remove exist one first
             mHandler.removeMessages(HANDLER_ANIMATE_OUT);
             mHandler.sendMessageDelayed(msg, AUTO_HIDE_TIME);
         }
@@ -401,7 +460,7 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
      * 隐藏 controller view
      */
     public void hide() {
-        if (mAnchorView == null) {
+        if (mAnchorView == null || mMediaPlayerControlListener.isPaused()) {
             return;
         }
 
@@ -439,9 +498,13 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         int position = mMediaPlayerControlListener.getCurrentPosition();
         int duration = mMediaPlayerControlListener.getDuration();
         if (mSeekBar != null) {
-            if (duration > 0) {
-                long pos = 1000L * position / duration;
-                mSeekBar.setProgress((int) pos);
+            if (position < duration) {
+                // use long to avoid overflow
+                int pos =  position / 1000;
+                mSeekBar.setProgress( pos);
+                if(!mSeekBar.isEnabled()){
+                    mSeekBar.setEnabled(true);
+                }
             }
             //获取缓冲百分百
             int percent = mMediaPlayerControlListener.getBufferPercentage();
@@ -456,20 +519,21 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
             mCurrentTime.setText(stringToTime(position));
             if(mMediaPlayerControlListener.isComplete()){
                 mCurrentTime.setText(stringToTime(duration));
-                mSeekBar.setProgress(1000);
+                mSeekBar.setProgress(duration / 1000);
+                mSeekBar.setEnabled(false);
             }
         }
-        mTitleText.setText(mVideoTitle);
+        if(mTitleText != null){
+            mTitleText.setText(mVideoTitle);
+        }
         mPauseButton.setImageResource(mMediaPlayerControlListener.isPlaying() ? mPauseIcon : mPlayIcon);
         return position;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
         mHandler.removeCallbacks(mHideRunnable);
         mHandler.postDelayed(mHideRunnable,100);
-
         switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
                 mCurVolume = -1;
@@ -522,9 +586,14 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         if (mMediaPlayerControlListener.isPlaying()) {
             mMediaPlayerControlListener.pause();
         } else {
-            mMediaPlayerControlListener.start();
+            if(mCurrentSpeed != mlastSpeed){
+                mMediaPlayerControlListener.setSpeed(mCurrentSpeed);
+            }else {
+                mMediaPlayerControlListener.start();
+            }
+
+            mHandler.postDelayed(mHideRunnable,AUTO_HIDE_TIME);
         }
-        togglePausePlay();
     }
 
     private void doToggleFullscreen() {
@@ -541,7 +610,7 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
     private SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onStartTrackingTouch(SeekBar bar) {
-            show();
+
             mIsDragging = true;
             mHandler.removeMessages(HANDLER_UPDATE_PROGRESS);
             mHandler.removeCallbacks(mHideRunnable);
@@ -549,30 +618,18 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
 
         @Override
         public void onProgressChanged(SeekBar bar, int progress, boolean fromuser) {
-            if (mMediaPlayerControlListener == null) {
-                return;
-            }
 
-            if (!fromuser) {
-                return;
-            }
-
-            long duration = mMediaPlayerControlListener.getDuration();
-            long newPosition = (duration * progress) / 1000L;
-//            mMediaPlayerControlListener.seekTo((int) newPosition);
-            if (mCurrentTime != null)
-                mCurrentTime.setText(stringToTime((int) newPosition));
         }
 
         @Override
         public void onStopTrackingTouch(SeekBar bar) {
-            long duration = mMediaPlayerControlListener.getDuration();
-            long newPosition = (duration * bar.getProgress()) / 1000L;
-            mMediaPlayerControlListener.seekTo((int) newPosition);
+
+            if(mMediaPlayerControlListener != null){
+                int progress = bar.getProgress();
+                mMediaPlayerControlListener.seekTo(progress * 1000);
+            }
             mIsDragging = false;
-            setSeekProgress();
             togglePausePlay();
-            show();
             mHandler.sendEmptyMessage(HANDLER_UPDATE_PROGRESS);
             mHandler.removeCallbacks(mHideRunnable);
             mHandler.postDelayed(mHideRunnable,AUTO_HIDE_TIME);
@@ -621,29 +678,21 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         }
     };
 
-    /**
-     * setMediaPlayerControlListener update play state
-     *
-     * @param mediaPlayerListener self
-     */
+
     public void setMediaPlayerControlListener(MediaPlayerControlListener mediaPlayerListener) {
         mMediaPlayerControlListener = mediaPlayerListener;
         togglePausePlay();
         toggleFullScreen();
     }
 
-    /**
-     * set anchor view
-     *
-     * @param view view that hold controller view
-     */
+
     private void setAnchorView(ViewGroup view) {
         mAnchorView = view;
         LayoutParams frameParams = new LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        //remove all before add view
+
         removeAllViews();
         View v = makeControllerView();
         addView(v, frameParams);
@@ -651,11 +700,7 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         setGestureListener();
     }
 
-    /**
-     * set gesture listen to control media player
-     * include screen brightness and volume of video
-     * and seek video play
-     */
+
     private void setGestureListener() {
 
         if(mCanControlVolume) {
@@ -675,9 +720,9 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
     @Override
     public void onHorizontalScroll(boolean seekForward) {
         if (mCanSeekVideo) {
-            if (seekForward) {// seek forward
+            if (seekForward) {
                 seekForWard();
-            } else {  //seek backward
+            } else {
                 seekBackWard();
             }
         }
@@ -711,7 +756,6 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
 
     @Override
     public void onVerticalScroll(float percent, int direction) {
-        //only landscape can control volume and brightness
         if(mMediaPlayerControlListener.isFullScreen()) {
             if (direction == ViewGestureListener.SWIPE_LEFT) {
                 if (mCanControlBrightness) {
@@ -729,11 +773,7 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         }
     }
 
-    /**
-     * update volume by seek percent
-     *
-     * @param percent seek percent
-     */
+
     private void updateVolume(float percent) {
 
         mCenterLayout.setVisibility(VISIBLE);
@@ -759,11 +799,7 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         mCenterProgress.setProgress(progress);
     }
 
-    /**
-     * update brightness by seek percent
-     *
-     * @param percent seek percent
-     */
+
     private void updateBrightness(float percent) {
 
         if (mCurBrightness == -1) {
@@ -796,12 +832,14 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         }
     };
 
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        getParent().requestDisallowInterceptTouchEvent(true);
+        return super.dispatchTouchEvent(ev);
+    }
 
-    /**
-     * Interface of Media Controller View Which can be callBack
-     * when {@link android.media.MediaPlayer} or some other media
-     * players work
-     */
+
+
     public interface MediaPlayerControlListener {
         /**
          * 开始播放
@@ -869,5 +907,11 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
          * 退出播放器
          */
         void exit();
+
+        void setSpeed(float speed);
+
+
+
+        boolean isPaused();
     }
 }

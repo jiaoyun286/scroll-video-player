@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
+import android.media.PlaybackParams;
 import android.os.Build;
 import android.os.Looper;
 import android.util.AttributeSet;
@@ -510,6 +511,24 @@ public class VideoPlayerView extends ScalableTextureView implements TextureView.
     public int getCurrentBuffer() {
         return mCurrentBuffer;
     }
+
+    public void setSpeed(float speed) {
+       mMediaPlayer.setSpeed(speed);
+    }
+
+
+
+    public boolean isPaused(){
+        if(mMediaPlayer != null){
+            return   mMediaPlayer.isPaused();
+        }
+        return false;
+
+
+    }
+
+
+
 
     @Override
     public String toString() {

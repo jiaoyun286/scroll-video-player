@@ -10,11 +10,8 @@ import com.nd.android.bk.video.tracker.IViewTracker;
  */
 public interface IControllerView {
 
-    View normalScreenController(IViewTracker tracker);
 
-
-
-    View fullScreenController(IViewTracker tracker);
+    View videoControllerBar(IViewTracker tracker);
 
 
     View loadingController(IViewTracker tracker);

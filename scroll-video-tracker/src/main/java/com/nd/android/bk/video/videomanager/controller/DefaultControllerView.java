@@ -5,13 +5,9 @@ import android.view.View;
 import com.nd.android.bk.video.tracker.IViewTracker;
 
 public class DefaultControllerView implements IControllerView {
-    @Override
-    public View normalScreenController(IViewTracker tracker) {
-        return new FullScreenControllerView(tracker.getContext());
-    }
 
     @Override
-    public View fullScreenController(IViewTracker tracker) {
+    public View videoControllerBar(IViewTracker tracker) {
         return new FullScreenControllerView(tracker.getContext());
     }
 

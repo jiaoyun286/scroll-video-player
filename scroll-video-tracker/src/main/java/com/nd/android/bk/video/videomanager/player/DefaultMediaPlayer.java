@@ -3,6 +3,7 @@ package com.nd.android.bk.video.videomanager.player;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
+import android.media.PlaybackParams;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -38,6 +39,7 @@ public class DefaultMediaPlayer implements IMediaPlayer,
     private VideoPlayerListener mListener;
     private Context mContext;
     private IViewTracker mViewTracker;
+    private float mCurrentPalySpeed = 1.0f;
 
     public DefaultMediaPlayer(Context context, VideoPlayerListener listener) {
         this.mContext = context;
@@ -377,6 +379,12 @@ public class DefaultMediaPlayer implements IMediaPlayer,
     }
 
     @Override
+    public boolean isPaused() {
+        State state = mState.get();
+        return State.PAUSED.equals(state);
+    }
+
+    @Override
     public int getDuration() throws IOException {
         int duration = 0;
         synchronized (mState) {
@@ -404,6 +412,23 @@ public class DefaultMediaPlayer implements IMediaPlayer,
         synchronized (mState) {
             return mState.get();
         }
+    }
+
+    @Override
+    public void setSpeed(float speed) {
+        if (android.os.Build.VERSION.SDK_INT >=
+                android.os.Build.VERSION_CODES.M && enableSetSpeed()) {
+            PlaybackParams playbackParams = mMediaPlayer.getPlaybackParams();
+            playbackParams.setSpeed(speed);
+            mMediaPlayer.setPlaybackParams(playbackParams);
+            mCurrentPalySpeed = speed;
+            mState.set(State.STARTED);
+        }
+    }
+
+
+    private boolean enableSetSpeed(){
+        return !State.IDLE.equals(mState) && !State.STOPPED.equals(mState);
     }
 
     @Override

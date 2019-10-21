@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.nd.android.bk.video.tracker.Tracker;
 import com.nd.android.bk.video.utils.ViewAnimator;
+import com.nd.android.bk.video.videomanager.player.RatioImageView;
 import com.nd.sdp.bk.video.R;
 import com.nd.sdp.player.demo.Backable;
 
@@ -27,7 +28,7 @@ import com.nd.sdp.player.demo.Backable;
 public class DetailFragment extends Fragment implements Backable {
 
     public static final String TAG = "DetailFragment";
-    private ImageView mImageCover;
+    private RatioImageView mImageCover;
     private TextView mTextDetail;
     private boolean mAnimateRunning;
 
@@ -40,8 +41,10 @@ public class DetailFragment extends Fragment implements Backable {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mTextDetail = (TextView) view.findViewById(R.id.txt_detail);
-        mImageCover = (ImageView) view.findViewById(R.id.view_tracker);
+        mTextDetail = view.findViewById(R.id.txt_detail);
+        mImageCover = view.findViewById(R.id.view_tracker);
+        //确保非全屏时，播放区域为16:9的比例
+        mImageCover.setRatio(16,9);
         mImageCover.post(new Runnable() {
             @Override
             public void run() {

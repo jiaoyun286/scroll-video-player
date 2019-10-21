@@ -5,11 +5,10 @@
               android:clickable="true"
               android:orientation="vertical">
 
-    <ImageView
+    <com.nd.android.bk.video.videomanager.player.RatioImageView
         android:id="@id/view_tracker"
         android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:clickable="true"
+        android:layout_height="wrap_content"
         android:contentDescription="@null"
         android:scaleType="centerCrop"
         />

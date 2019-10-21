@@ -94,14 +94,10 @@ public abstract class ScalableTextureView extends TextureView {
 
         switch (mScaleType) {
             case FILL:
-                if (viewWidth / viewHeight > contentWidth / contentHeight) {
-                    //播放器高度大于当前视图
-                    if (contentWidth / contentHeight >= 1.5) { // 12:7 16:9,忽略一些不常见的比例 720/564
-                        scaleY = (contentHeight * viewWidth) / (viewHeight * contentWidth);
-                    }
-                } else {
-                    //播放器高度大于当前视图
+                if (viewWidth > viewHeight) {
                     scaleX = (viewHeight * contentWidth) / (viewWidth * contentHeight);
+                } else {
+                    scaleY = (viewWidth * contentHeight) / (viewHeight * contentWidth);
                 }
                 break;
             case BOTTOM:

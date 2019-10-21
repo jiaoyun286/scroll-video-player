@@ -35,17 +35,20 @@ public class FullScreenControllerView extends BaseControllerView {
     @Override
     public void setViewTracker(IViewTracker viewTracker) {
         super.setViewTracker(viewTracker);
-        mControllerView = new VideoControllerView.Builder((Activity) viewTracker.getContext(), mPlayerControlListener)
-                .withVideoView(viewTracker.getFollowerView())
-                .canControlBrightness(true)
-                .canControlVolume(true)
-                .canSeekVideo(false)
-                .exitIcon(R.drawable.video_top_back)
-                .pauseIcon(R.drawable.ic_media_pause)
-                .playIcon(R.drawable.ic_media_play)
-                .shrinkIcon(R.drawable.ic_media_fullscreen_shrink)
-                .stretchIcon(R.drawable.ic_media_fullscreen_stretch)
-                .build(this);
+        if(mControllerView == null){
+            mControllerView = new VideoControllerView.Builder((Activity) viewTracker.getContext(), mPlayerControlListener)
+                    .withVideoView(viewTracker.getFollowerView())
+                    .canControlBrightness(true)
+                    .canControlVolume(true)
+                    .canSeekVideo(false)
+                    .exitIcon(R.drawable.video_top_back)
+                    .pauseIcon(R.drawable.ic_media_pause_small)
+                    .playIcon(R.drawable.ic_media_play_small)
+                    .shrinkIcon(R.drawable.ic_media_fullscreen_shrink)
+                    .stretchIcon(R.drawable.ic_media_fullscreen_stretch)
+                    .build(this);
+
+        }
     }
 
     @Override
@@ -113,6 +116,17 @@ public class FullScreenControllerView extends BaseControllerView {
             if (isFullScreen()) {
                 mViewTracker.toNormalScreen();
             }
+        }
+
+        @Override
+        public void setSpeed(float speed) {
+            mVideoPlayerView.setSpeed(speed);
+        }
+
+
+        @Override
+        public boolean isPaused() {
+            return mVideoPlayerView.isPaused();
         }
     };
 }

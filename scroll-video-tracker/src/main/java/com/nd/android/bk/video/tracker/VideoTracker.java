@@ -9,7 +9,6 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.util.SimpleArrayMap;
 import android.view.View;
-import android.view.ViewGroup;
 
 import com.nd.android.bk.video.R;
 import com.nd.android.bk.video.meta.MetaData;
@@ -33,8 +32,8 @@ public class VideoTracker extends ViewTracker implements PlayerItemChangeListene
     private OrientationDetector mOrientationDetector;
     private VideoPlayerView mVideoPlayView;
     private View mLoadingControllerView;
-    private BaseControllerView mNormalScreenControllerView;
-    private BaseControllerView mFullScreenControllerView;
+
+    private BaseControllerView mVideoContollerBar;
     public VideoTracker(Activity context) {
         super(context);
     }
@@ -134,27 +133,13 @@ public class VideoTracker extends ViewTracker implements PlayerItemChangeListene
     }
 
     private void handleControllerView(IControllerView controllerView) {
-        if(mLoadingControllerView != null && mLoadingControllerView.getParent() != null){
-            ((ViewGroup) mLoadingControllerView.getParent()).removeView(mLoadingControllerView);
-        }
-
-        if(mNormalScreenControllerView != null && mNormalScreenControllerView.getParent() != null){
-            ((ViewGroup) mNormalScreenControllerView.getParent()).removeView(mNormalScreenControllerView);
-        }
-
-        if(mFullScreenControllerView != null && mFullScreenControllerView.getParent() != null){
-            ((ViewGroup) mFullScreenControllerView.getParent()).removeView(mFullScreenControllerView);
-        }
         if(mLoadingControllerView == null){
             mLoadingControllerView = controllerView.loadingController(this);
         }
 
-        if(mNormalScreenControllerView == null){
-            mNormalScreenControllerView = (BaseControllerView) controllerView.normalScreenController(this);
-        }
 
-        if(mFullScreenControllerView == null){
-            mFullScreenControllerView = (BaseControllerView) controllerView.fullScreenController(this);
+        if(mVideoContollerBar == null){
+            mVideoContollerBar = (BaseControllerView) controllerView.videoControllerBar(this);
         }
     }
 
@@ -178,30 +163,13 @@ public class VideoTracker extends ViewTracker implements PlayerItemChangeListene
         Tracker.pauseVideo();
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        if (isFullScreen()) {
-            addFullScreenView();
-        } else {
-            addNormalScreenView();
-        }
-    }
 
-    public void addNormalScreenView() {
-        mVideoTopView.removeView(mFullScreenControllerView);
-        if(mNormalScreenControllerView.getParent() == null) {
-            mVideoTopView.addView(mNormalScreenControllerView);
+    private void addVideoControllerBar() {
+        if(mVideoContollerBar.getParent() == null) {
+            mVideoContollerBar.setViewTracker(this);
+            mVideoTopView.addView(mVideoContollerBar);
         }
-        mNormalScreenControllerView.setViewTracker(this);
-    }
-
-    private void addFullScreenView() {
-        mVideoTopView.removeView(mNormalScreenControllerView);
-        if(mFullScreenControllerView.getParent() == null) {
-            mVideoTopView.addView(mFullScreenControllerView);
-        }
-        mFullScreenControllerView.setViewTracker(this);
+        mVideoContollerBar.setVisibility(View.VISIBLE);
     }
     private void addOrRemoveLoadingView(boolean add) {
         if (mControllerView != null) {
@@ -209,8 +177,12 @@ public class VideoTracker extends ViewTracker implements PlayerItemChangeListene
                 if (mLoadingControllerView.getParent() == null) {
                     mVideoTopView.addView(mLoadingControllerView);
                 }
+                mLoadingControllerView.setVisibility(View.VISIBLE);
+                mVideoContollerBar.setVisibility(View.GONE);
+
             } else {
-                mVideoTopView.removeView(mLoadingControllerView);
+                mLoadingControllerView.setVisibility(View.GONE);
+                addVideoControllerBar();
             }
         }
     }
@@ -275,11 +247,7 @@ public class VideoTracker extends ViewTracker implements PlayerItemChangeListene
                     addOrRemoveLoadingView(false);
                     mVideoBottomView.setBackgroundResource(0);
                 }
-                if(!isFullScreen()) {
-                    addNormalScreenView();
-                }else {
-                    addFullScreenView();
-                }
+                addVideoControllerBar();
             }
         });
         Tracker.playNewVideo(this, mVideoPlayView);
