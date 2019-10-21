@@ -1,10 +1,9 @@
 package com.nd.android.bk.video.videomanager.controller;
 
 import android.content.Context;
+import android.graphics.drawable.AnimationDrawable;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 
 import com.nd.android.bk.video.R;
@@ -26,30 +25,26 @@ public class LoadingControllerView extends BaseControllerView {
         super(context, attrs, defStyleAttr);
     }
 
-    private RotateAnimation animation;
     private ImageView loading;
+    private AnimationDrawable drawable;
 
     @Override
     protected void initView() {
 
         loading = new ImageView(getContext());
-        loading.setImageResource(R.drawable.video_loading);
+        loading.setBackgroundResource(R.drawable.common_video_loading);
         LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.addRule(CENTER_IN_PARENT);
         addView(loading, params);
-
-        animation = new RotateAnimation(0,361, Animation.RELATIVE_TO_SELF,0.5f,Animation.RELATIVE_TO_SELF, 0.5f);
-        animation.setRepeatMode(Animation.RESTART);
-        animation.setRepeatCount(Animation.INFINITE);
-        animation.setDuration(700);
+        drawable = (AnimationDrawable) loading.getBackground();
     }
 
     @Override
     protected void attachWindow(boolean attach) {
         if(attach){
-            loading.startAnimation(animation);
+            drawable.start();
         }else {
-            loading.clearAnimation();
+            drawable.stop();
         }
     }
 }
