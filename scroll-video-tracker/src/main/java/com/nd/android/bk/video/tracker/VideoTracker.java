@@ -204,7 +204,6 @@ public class VideoTracker extends ViewTracker implements PlayerItemChangeListene
         mFullScreenControllerView.setViewTracker(this);
     }
     private void addOrRemoveLoadingView(boolean add) {
-        Logger.d("999","add = " + add);
         if (mControllerView != null) {
             if (add) {
                 if (mLoadingControllerView.getParent() == null) {
@@ -255,7 +254,6 @@ public class VideoTracker extends ViewTracker implements PlayerItemChangeListene
 
             @Override
             public void onBufferingUpdate(IViewTracker viewTracker, int percent) {
-                Logger.d("999","onBufferingUpdate percent = " + percent);
                 //预防onInfo有时未回调，导致视频未显示出来的问题
                 if( percent > 10){
                     mVideoPlayView.setVisibility(View.VISIBLE);

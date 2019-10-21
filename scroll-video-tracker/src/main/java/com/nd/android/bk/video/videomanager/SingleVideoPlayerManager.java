@@ -43,6 +43,7 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<IViewTracker
 
     private List<PlayerItemChangeListener> mPlayerItemChangeListeners = new ArrayList<>();
     private List<VideoPlayerListener> mPendingAddListeners = new ArrayList<>();
+    private boolean isRelease = false;
 
     private static SingleVideoPlayerManager mInstance;
 
@@ -312,9 +313,11 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<IViewTracker
 
         mCurrentPlayerState = playerMessageState;
 
-        //clear listener when player instance cleared
-        if (playerMessageState == PlayerMessageState.PLAYER_INSTANCE_CLEARED && mCurrentPlayer != null) {
+        if (playerMessageState == PlayerMessageState.PLAYER_INSTANCE_CLEARED) {
             mCurrentPlayer.removeAllPlayerListener();
+            if(isRelease){
+                onRelease();
+            }
         }
 
         Logger.v(TAG, "<< updateVideoPlayerState, playerMessageState " + playerMessageState + ", videoPlayer " + videoPlayerView);
@@ -405,13 +408,21 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<IViewTracker
     }
 
     public void release(){
+        if(mCurrentPlayerState == PlayerMessageState.PLAYER_INSTANCE_CLEARED){
+            onRelease();
+        }else {
+            //消息还未处理完，先标记为release
+            isRelease = true;
+        }
+    }
+
+    private void onRelease(){
+        mCurrentPlayer = null;
         mPendingAddListeners.clear();
         mPlayerItemChangeListeners.clear();
-        if(mCurrentPlayer != null){
-            mCurrentPlayer.removeAllPlayerListener();
-            mCurrentPlayer = null;
-        }
         mCurrentPlayerState = null;
+        isRelease = false;
+
     }
 
 
