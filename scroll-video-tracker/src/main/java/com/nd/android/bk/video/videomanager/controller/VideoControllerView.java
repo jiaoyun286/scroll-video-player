@@ -378,6 +378,8 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         super.onConfigurationChanged(newConfig);
         mBackButton.setVisibility(mMediaPlayerControlListener.isFullScreen() ? View.VISIBLE : View.GONE);
         mFullscreenButton.setVisibility(mMediaPlayerControlListener.isFullScreen() ? View.GONE : View.VISIBLE);
+        toggleFullScreen();
+
     }
 
     private void show() {
