@@ -18,4 +18,13 @@ public class VideoPageLifecycleTracker extends DefaultLifecycleTracker {
         SingleVideoPlayerManager.getInstance().release();
         super.onDestroy();
     }
+
+    @Override
+    public void onPause() {
+        Logger.d(TAG,"onPause");
+        if(SingleVideoPlayerManager.getInstance().isPlaying()){
+            Tracker.pauseVideo();
+        }
+        super.onPause();
+    }
 }

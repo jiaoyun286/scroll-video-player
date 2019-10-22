@@ -425,5 +425,12 @@ public class SingleVideoPlayerManager implements VideoPlayerManager<IViewTracker
 
     }
 
+    public boolean isPlaying(){
+        if(mCurrentPlayer != null){
+            return mCurrentPlayer.isPlaying();
+        }
+        return false;
+    }
+
 
 }
